@@ -3,3 +3,6 @@
 .idea/
 
 aic
+
+.env
+.aicommit.yaml

@@ -87,6 +87,38 @@ var setDeepSeekCmd = &cobra.Command{
 	},
 }
 
+var setGoogleAICmd = &cobra.Command{
+	Use:   "set-googleai [api-key]",
+	Short: "Set Google AI API key and settings",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		config, err := LoadConfig()
+		if err != nil {
+			return fmt.Errorf("failed to load config: %w", err)
+		}
+
+		config.AIModel = GoogleAIModel
+		config.GoogleAI.APIKey = args[0]
+
+		model, _ := cmd.Flags().GetString("model")
+		if model != "" {
+			config.GoogleAI.Model = model
+		}
+
+		temp, _ := cmd.Flags().GetFloat32("temperature")
+		if temp > 0 {
+			config.GoogleAI.Temperature = temp
+		}
+
+		if err := SaveConfig(config); err != nil {
+			return fmt.Errorf("failed to save config: %w", err)
+		}
+
+		fmt.Println("✅ Google AI configuration saved successfully")
+		return nil
+	},
+}
+
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate commit message from staged changes",
@@ -108,6 +140,8 @@ var generateCmd = &cobra.Command{
 		switch config.AIModel {
 		case DeepSeekModel:
 			message, err = generateWithDeepSeek(diff, config)
+		case GoogleAIModel:
+			message, err = generateWithGoogleAI(diff, config)
 		default: // OpenAI
 			message, err = generateWithOpenAI(diff, config)
 		}
@@ -127,20 +161,25 @@ var generateCmd = &cobra.Command{
 }
 
 func init() {
+	// Add flags for OpenAI
+	setOpenAICmd.Flags().String("model", "gpt-3.5-turbo", "OpenAI model to use")
+	setOpenAICmd.Flags().Float32("temperature", 0.7, "Temperature for response generation (0.0 to 1.0)")
+
+	// Add flags for DeepSeek
+	setDeepSeekCmd.Flags().String("model", "deepseek-chat", "DeepSeek model to use")
+	setDeepSeekCmd.Flags().String("base-url", "", "Base URL for DeepSeek API")
+	setDeepSeekCmd.Flags().Float32("temperature", 0.7, "Temperature for response generation (0.0 to 1.0)")
+
+	// Add flags for Google AI
+	setGoogleAICmd.Flags().String("model", "gemini-pro", "Google AI model to use")
+	setGoogleAICmd.Flags().Float32("temperature", 0.7, "Temperature for response generation (0.0 to 1.0)")
+
 	// Add commands
-	rootCmd.AddCommand(generateCmd)
-	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(setOpenAICmd)
 	configCmd.AddCommand(setDeepSeekCmd)
-
-	// Set OpenAI flags
-	setOpenAICmd.Flags().String("model", "", "OpenAI model (default: gpt-3.5-turbo)")
-	setOpenAICmd.Flags().Float32("temperature", 0.7, "Temperature for the model (0.0 to 2.0)")
-
-	// Set DeepSeek flags
-	setDeepSeekCmd.Flags().String("model", "", "DeepSeek model (default: deepseek-chat)")
-	setDeepSeekCmd.Flags().Float32("temperature", 0.7, "Temperature for the model (0.0 to 2.0)")
-	setDeepSeekCmd.Flags().String("base-url", "", "Base URL for DeepSeek API (default: https://api.deepseek.com/v1)")
+	configCmd.AddCommand(setGoogleAICmd)
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(generateCmd)
 
 	// Set generate as default command
 	rootCmd.RunE = generateCmd.RunE

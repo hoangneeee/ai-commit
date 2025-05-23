@@ -13,6 +13,7 @@ type AIModel string
 const (
 	OpenAIModel   AIModel = "openai"
 	DeepSeekModel AIModel = "deepseek"
+	GoogleAIModel AIModel = "googleai"
 )
 
 type OpenAIConfig struct {
@@ -28,10 +29,17 @@ type DeepSeekConfig struct {
 	BaseURL     string  `mapstructure:"base_url"`
 }
 
+type GoogleAIConfig struct {
+	APIKey      string  `mapstructure:"apikey"`
+	Model       string  `mapstructure:"model"`
+	Temperature float32 `mapstructure:"temperature"`
+}
+
 type Config struct {
 	AIModel  AIModel        `mapstructure:"ai_model"`
 	OpenAI   OpenAIConfig   `mapstructure:"openai"`
 	DeepSeek DeepSeekConfig `mapstructure:"deepseek"`
+	GoogleAI GoogleAIConfig `mapstructure:"googleai"`
 }
 
 func getConfigPath() (string, error) {
@@ -55,6 +63,8 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("deepseek.model", "deepseek-chat")
 	viper.SetDefault("deepseek.temperature", 0.7)
 	viper.SetDefault("deepseek.base_url", "https://api.deepseek.com")
+	viper.SetDefault("googleai.model", "gemma-3-27b-it")
+	viper.SetDefault("googleai.temperature", 0.7)
 
 	// Check if config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -71,6 +81,11 @@ func LoadConfig() (*Config, error) {
 				Model:       "deepseek-chat",
 				Temperature: 0.7,
 				BaseURL:     "https://api.deepseek.com",
+			},
+			GoogleAI: GoogleAIConfig{
+				APIKey:      "",
+				Model:       "googleai-model",
+				Temperature: 0.7,
 			},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create default config: %w", err)
@@ -95,6 +110,8 @@ func LoadConfig() (*Config, error) {
 		return &config, nil
 	case DeepSeekModel:
 		return &config, nil
+	case GoogleAIModel:
+		return &config, nil
 	default:
 		return nil, fmt.Errorf("unsupported AI model: %s", config.AIModel)
 	}
@@ -115,6 +132,7 @@ func SaveConfig(config *Config) error {
 	viper.Set("ai_model", config.AIModel)
 	viper.Set("openai", config.OpenAI)
 	viper.Set("deepseek", config.DeepSeek)
+	viper.Set("googleai", config.GoogleAI)
 
 	// Write config file
 	if err := viper.WriteConfigAs(configPath); err != nil {
@@ -127,9 +145,13 @@ func SaveConfig(config *Config) error {
 // GetActiveConfig trả về cấu hình đang được chọn (OpenAI hoặc DeepSeek)
 func (c *Config) GetActiveConfig() (string, string, float32, string) {
 	switch c.AIModel {
+	case OpenAIModel:
+		return c.OpenAI.APIKey, c.OpenAI.Model, c.OpenAI.Temperature, ""
 	case DeepSeekModel:
 		return c.DeepSeek.APIKey, c.DeepSeek.Model, c.DeepSeek.Temperature, c.DeepSeek.BaseURL
-	default: // OpenAI
-		return c.OpenAI.APIKey, c.OpenAI.Model, c.OpenAI.Temperature, ""
+	case GoogleAIModel:
+		return c.GoogleAI.APIKey, c.GoogleAI.Model, c.GoogleAI.Temperature, ""
+	default:
+		return "", "", 0, ""
 	}
 }
