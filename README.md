@@ -143,4 +143,4 @@ googleai:
 
 ## License
 
-MIT
+[License](LICENSE)
