@@ -142,7 +142,7 @@ func SaveConfig(config *Config) error {
 	return nil
 }
 
-// GetActiveConfig trả về cấu hình đang được chọn (OpenAI hoặc DeepSeek)
+// GetActiveConfig return active config (OpenAI, DeepSeek or GoogleAI)
 func (c *Config) GetActiveConfig() (string, string, float32, string) {
 	switch c.AIModel {
 	case OpenAIModel:

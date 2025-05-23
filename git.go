@@ -8,7 +8,7 @@ import (
 )
 
 func getGitDiff() (string, error) {
-	cmd := exec.Command("git", "diff", "--staged")
+	cmd := exec.Command("git", "diff")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr

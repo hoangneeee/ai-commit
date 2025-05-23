@@ -45,19 +45,15 @@ func generateWithDeepSeek(diff string, config *Config) (string, error) {
 
 	log.Printf("Using DeepSeek config - Model: %s, BaseURL: %s", model, baseURL)
 
-	// Nếu không có baseURL, sử dụng mặc định của DeepSeek
 	if baseURL == "" {
 		baseURL = "https://api.deepseek.com"
 	}
 
-	// Tạo client với config tùy chỉnh
 	clientConfig := openai.DefaultConfig(apiKey)
 	clientConfig.BaseURL = baseURL
 
-	// Tạo client mới với config đã tùy chỉnh
 	client := openai.NewClientWithConfig(clientConfig)
 
-	// Tạo tin nhắn với prompt
 	prompt := buildPrompt(diff)
 	log.Printf("Sending prompt to DeepSeek API, length: %d", len(prompt))
 
@@ -68,7 +64,6 @@ func generateWithDeepSeek(diff string, config *Config) (string, error) {
 		},
 	}
 
-	// Gọi API
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
@@ -79,7 +74,6 @@ func generateWithDeepSeek(diff string, config *Config) (string, error) {
 	)
 
 	if err != nil {
-		// In chi tiết lỗi để debug
 		log.Printf("DeepSeek API error: %v", err)
 		return "", fmt.Errorf("failed to generate commit message with DeepSeek: %w", err)
 	}

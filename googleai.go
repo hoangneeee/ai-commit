@@ -98,5 +98,6 @@ func generateWithGoogleAI(diff string, config *Config) (string, error) {
 		return "", fmt.Errorf("no content in response")
 	}
 
-	return response.Candidates[0].Content.Parts[0].Text, nil
+	message := response.Candidates[0].Content.Parts[0].Text
+	return processMessage(message)
 }

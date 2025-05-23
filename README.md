@@ -17,7 +17,7 @@ A CLI tool that generates commit messages using AI (OpenAI or DeepSeek) based on
 go install github.com/hoangneee/ai-commit@latest
 ```
 
-### Manual Build
+### Manual Build with Alias (recommended for development)
 
 1. Clone the repository:
 
@@ -26,18 +26,41 @@ go install github.com/hoangneee/ai-commit@latest
    cd ai-commit
    ```
 
-2. Build the binary:
+2. Make the build script executable and run it:
 
    ```bash
-   go build -o aic .
+   chmod +x build.sh
+   ./build.sh
    ```
 
-3. Move the binary to your PATH:
+3. Set up the alias (choose one method):
+
+   For temporary use (current terminal session only):
+
    ```bash
-   mv aic /usr/local/bin/  # Linux/macOS
-   # or
-   # move aic.exe to a directory in your PATH on Windows
+   alias aic='$(pwd)/aic'
    ```
+
+   For permanent use (add to your shell config):
+
+   ```bash
+   echo "alias aic='$(pwd)/aic'" >> ~/.zshrc  # or ~/.bashrc
+   source ~/.zshrc  # or ~/.bashrc
+   ```
+
+4. Verify the installation:
+   ```bash
+   aic --help
+   ```
+
+### Manual Installation (legacy)
+
+```bash
+git clone https://github.com/hoangneee/ai-commit.git
+cd ai-commit
+go build -o aic .
+sudo mv aic /usr/local/bin/
+```
 
 ## Configuration
 
@@ -59,6 +82,16 @@ aic config set-deepseek your-deepseek-api-key
 
 # Optional: Set model, temperature, and base URL
 aic config set-deepseek your-deepseek-api-key --model deepseek-chat --temperature 0.7 --base-url https://api.deepseek.com/v1
+```
+
+### Configure Google AI
+
+```bash
+# Set Google AI API key (required)
+aic config set-googleai your-googleai-api-key
+
+# Optional: Set model and temperature
+aic config set-googleai your-googleai-api-key --model gemini-pro --temperature 0.7
 ```
 
 ## Usage
@@ -102,6 +135,10 @@ deepseek:
   model: deepseek-chat
   temperature: 0.7
   base_url: https://api.deepseek.com/v1
+googleai:
+  api_key: your-googleai-api-key
+  model: gemini-pro
+  temperature: 0.7
 ```
 
 ## License
